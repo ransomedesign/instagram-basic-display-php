@@ -12,6 +12,8 @@ class InstagramBasicDisplay
     
     const API_TOKEN_EXCHANGE_URL = 'https://graph.instagram.com/access_token';
 
+    const API_TOKEN_REFRESH_URL = 'https://graph.instagram.com/refresh_access_token';
+
     private $_appId;
 
     private $_appSecret;
@@ -151,6 +153,29 @@ class InstagramBasicDisplay
         );
 
         $result = $this->_makeOAuthCall(self::API_TOKEN_EXCHANGE_URL, $apiData, 'GET');
+
+        return !$tokenOnly ? $result : $result->access_token;
+    }
+    
+    /**
+     * Refresh the long lived token. This should be done within 60 days or else the existing token will expire
+     * and cannot be refreshed.
+     * @param  string  $token     The existing long lived token.
+     * @param  boolean $tokenOnly Return either the token (TRUE) or the whole response (FALSE).
+     * @return string
+     */
+    public function refreshLongLivedToken($token = NULL, $tokenOnly = false)
+    {
+        if ( ! $token ) {
+            throw new InstagramBasicDisplayException('Error: missing $token argument');
+        }
+
+        $apiData = array(
+            'grant_type' => 'ig_refresh_token',
+            'access_token' => $token
+        );
+
+        $result = $this->_makeOAuthCall(self::API_TOKEN_REFRESH_URL, $apiData, 'GET');
 
         return !$tokenOnly ? $result : $result->access_token;
     }
